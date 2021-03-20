@@ -59,6 +59,15 @@ namespace MunroApiData.Repositories
         }
 
         /// <summary>
+        /// Test method to see how many rows were loaded from csv
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<CsvHill> GetAll()
+        {
+            return _hills;
+        }
+
+        /// <summary>
         /// Get hills matching search criteria
         /// </summary>
         /// <param name="search"></param>
@@ -71,7 +80,8 @@ namespace MunroApiData.Repositories
                 search.SortDirection = "ASC";
             }
 
-            var hills = _hills;
+            //should never return hills that are uncategorised
+            var hills = _hills.Where(x=>x.Post1997 != "");
 
             if (!string.IsNullOrWhiteSpace(search.Category))
             {

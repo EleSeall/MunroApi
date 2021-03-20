@@ -20,7 +20,7 @@ namespace MunroApiUnitTests
         public void CsvHillRepository_LoadData()
         {
             //get all hills with no search criteria
-            var results = csvHillRespoitory.GetHills(new HillSearch());
+            var results = csvHillRespoitory.GetAll();
 
             Assert.IsTrue(results.Count() > 1);
             //expecting 602 lines from the munro csv
@@ -63,8 +63,8 @@ namespace MunroApiUnitTests
             //get all hills with no search criteria
             var results = csvHillRespoitory.GetHills(new HillSearch());
 
-            //expecting 602 unfiltered results
-            Assert.AreEqual(results.Count(), 602);
+            //expecting 509 results (exclude blanks from Post1997 category column)
+            Assert.AreEqual(results.Count(), 509);
         }
 
         [TestMethod]
