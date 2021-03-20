@@ -28,26 +28,6 @@ namespace MunroApiUnitTests
         }
 
         [TestMethod]
-        public void CsvHillRepository_Get_ById_Exists()
-        {
-            //get hill #42
-            var results = csvHillRespoitory.Get(42);
-
-            //expecting a hill with running number 42
-            Assert.AreEqual(42, results.RunningNo);
-        }
-
-        [TestMethod]
-        public void CsvHillRepository_Get_ById_DoesNotExist()
-        {
-            //get hill #999
-            var results = csvHillRespoitory.Get(999);
-
-            //expecting a blank hill object
-            Assert.AreEqual(0, results.RunningNo);
-        }
-
-        [TestMethod]
         public void CsvHillRepository_Get_ByName_Exists()
         {
             //get hill by name
@@ -99,7 +79,7 @@ namespace MunroApiUnitTests
             var results = csvHillRespoitory.GetHills(search);
 
             //expecting only results with TOP category
-            Assert.IsTrue(results.All(x => x.Post1997 == "TOP"));
+            Assert.IsTrue(results.All(x => x.Category == "TOP"));
         }
 
         [TestMethod]
@@ -114,7 +94,7 @@ namespace MunroApiUnitTests
             var results = csvHillRespoitory.GetHills(search);
 
             //expecting only results with MUN category
-            Assert.IsTrue(results.All(x => x.Post1997 == "MUN"));
+            Assert.IsTrue(results.All(x => x.Category == "MUN"));
         }
 
         [TestMethod]
@@ -129,7 +109,7 @@ namespace MunroApiUnitTests
             var results = csvHillRespoitory.GetHills(search);
 
             //expecting only results with heights over 1000
-            Assert.IsTrue(results.All(x => x.HeightM >= 1000));
+            Assert.IsTrue(results.All(x => x.Height >= 1000));
         }
 
         [TestMethod]
@@ -144,7 +124,7 @@ namespace MunroApiUnitTests
             var results = csvHillRespoitory.GetHills(search);
 
             //expecting only results with heights under 1000
-            Assert.IsTrue(results.All(x => x.HeightM <= 1000));
+            Assert.IsTrue(results.All(x => x.Height <= 1000));
         }
 
         [TestMethod]
@@ -152,8 +132,8 @@ namespace MunroApiUnitTests
         {
             var search = new HillSearch
             {
-                SortBy = SortBy.Name,
-                SortDirection = SortDirection.Asc
+                SortBy = "Name",
+                SortDirection = "Asc"
             };
 
             //get all hills with search criteria
@@ -168,8 +148,8 @@ namespace MunroApiUnitTests
         {
             var search = new HillSearch
             {
-                SortBy = SortBy.Name,
-                SortDirection = SortDirection.Desc
+                SortBy = "Name",
+                SortDirection = "Desc"
             };
 
             //get all hills with search criteria
@@ -184,15 +164,15 @@ namespace MunroApiUnitTests
         {
             var search = new HillSearch
             {
-                SortBy = SortBy.Height,
-                SortDirection = SortDirection.Asc
+                SortBy = "Height",
+                SortDirection = "Asc"
             };
 
             //get all hills with search criteria
             var results = csvHillRespoitory.GetHills(search);
 
             //expecting first result to be lower in height than last result
-            Assert.IsTrue(results.First().HeightM < results.Last().HeightM);
+            Assert.IsTrue(results.First().Height < results.Last().Height);
         }
 
         [TestMethod]
@@ -200,15 +180,15 @@ namespace MunroApiUnitTests
         {
             var search = new HillSearch
             {
-                SortBy = SortBy.Height,
-                SortDirection = SortDirection.Desc
+                SortBy = "Height",
+                SortDirection = "Desc"
             };
 
             //get all hills with search criteria
             var results = csvHillRespoitory.GetHills(search);
 
             //expecting first result to be greater in height than last result
-            Assert.IsTrue(results.First().HeightM > results.Last().HeightM);
+            Assert.IsTrue(results.First().Height > results.Last().Height);
         }
 
         [TestMethod]
@@ -217,8 +197,8 @@ namespace MunroApiUnitTests
             var search = new HillSearch
             {
                 Take = 10,
-                SortBy = SortBy.Name,
-                SortDirection = SortDirection.Asc
+                SortBy = "Name",
+                SortDirection = "Asc"
             };
 
             //get all hills with search criteria
@@ -235,15 +215,48 @@ namespace MunroApiUnitTests
             var search = new HillSearch
             {
                 Take = 10,
-                SortBy = SortBy.Height,
-                SortDirection = SortDirection.Desc
+                SortBy = "Height",
+                SortDirection = "Desc"
             };
 
             //get all hills with search criteria
             var results = csvHillRespoitory.GetHills(search);
 
             //expecting first result to be greater in height than last result
-            Assert.IsTrue(results.First().HeightM > results.Last().HeightM);
+            Assert.IsTrue(results.First().Height > results.Last().Height);
+            Assert.AreEqual(10, results.Count());
+        }
+
+
+        [TestMethod]
+        public void CsvHillRepository_GetHills_MultipleFilters()
+        {
+            var search = new HillSearch
+            {
+                Category = "MUN",
+                MinHeight = 500,
+                MaxHeight = 1000,
+                Take = 10,
+                SortBy = "Height",
+                SortDirection = "Desc"
+            };
+
+            //get all hills with search criteria
+            var results = csvHillRespoitory.GetHills(search);
+
+            //expecting first result to be greater in height than last result
+            Assert.IsTrue(results.First().Height > results.Last().Height);
+
+            //heights over 500
+            Assert.IsTrue(results.All(x => x.Height >= 500));
+
+            //heights under 1000
+            Assert.IsTrue(results.All(x => x.Height <= 1000));
+
+            //only munroes
+            Assert.IsTrue(results.All(x=>x.Category == "MUN"));
+
+            //take 10 only
             Assert.AreEqual(10, results.Count());
         }
     }

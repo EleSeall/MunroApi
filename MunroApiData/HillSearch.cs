@@ -16,18 +16,42 @@ namespace MunroApiData
 
         public int Take { get; set; } = 0;
 
-        public SortBy SortBy { get; set; } = SortBy.None;
+        public string SortBy { get; set; } = "";
 
-        public SortDirection SortDirection { get; set; } = SortDirection.Asc;
-    }
+        public string SortDirection { get; set; } = "ASC";
 
-    public enum SortDirection
-    {
-        Asc, Desc
-    }
+        /// <summary>
+        /// Sanity checks the filter
+        /// </summary>
+        /// <returns>Error message, or blank if ok</returns>
+        public string Check()
+        {
+            if (!string.IsNullOrWhiteSpace(Category) &&
+                Category.ToUpper() != "MUN" && Category.ToUpper() != "TOP")
+            {
+                return "Category can be either MUN, TOP or left blank for both";
+            }
 
-    public enum SortBy
-    {
-        None, Name, Height
+            if (!string.IsNullOrWhiteSpace(SortBy) &&
+                SortBy.ToUpper() != "NAME" && SortBy.ToUpper() != "HEIGHT")
+            {
+                return "Sort by can be either NAME or HEIGHT";
+            }
+
+            if (!string.IsNullOrWhiteSpace(SortDirection) &&
+                SortDirection.ToUpper() != "ASC" && SortDirection.ToUpper() != "DESC")
+            {
+                return "Sort direction can be either ASC or DESC. Defaults to ASC if left blank.";
+            }
+
+            if (MaxHeight > 0
+                && MinHeight > 0
+                && MaxHeight < MinHeight)
+            {
+                return "Max height must be greater than min height";
+            }
+
+            return "";
+        }
     }
 }

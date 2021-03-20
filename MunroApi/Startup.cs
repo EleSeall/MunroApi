@@ -7,6 +7,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using MunroApiData;
+using MunroApiData.Repositories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -28,6 +30,18 @@ namespace MunroApi
         {
 
             services.AddControllers();
+
+            //look in config for the path to the csv data
+            var filePath = Configuration.GetValue<string>("csvFilePath");
+
+            if (string.IsNullOrWhiteSpace(filePath))
+            {
+                //hardcoded here incase value isnt in secrets
+                filePath = @"munrotab_v6.2.csv";
+            }
+
+            services.AddSingleton<IHillRepository>(new CsvHillRepository(filePath));
+
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "MunroApi", Version = "v1" });

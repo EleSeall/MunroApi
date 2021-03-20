@@ -7,7 +7,7 @@ using TinyCsvParser.Mapping;
 
 namespace MunroApiData.ParserMapping
 {
-    class CsvHillMapping : CsvMapping<Hill>
+    class CsvHillMapping : CsvMapping<CsvHill>
     {
         public CsvHillMapping()
             : base()

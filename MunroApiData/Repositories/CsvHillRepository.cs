@@ -9,7 +9,7 @@ namespace MunroApiData.Repositories
 {
     public class CsvHillRepository : IHillRepository, IDisposable
     {
-        private IEnumerable<Hill> _hills;
+        private IEnumerable<CsvHill> _hills;
 
         public CsvHillRepository(string filePath)
         {
@@ -29,18 +29,6 @@ namespace MunroApiData.Repositories
         }
 
         /// <summary>
-        /// Retrieve hill by running number
-        /// </summary>
-        /// <param name="id">running number</param>
-        /// <returns></returns>
-        public Hill Get(int id)
-        {
-            var hill = _hills.FirstOrDefault(x => x.RunningNo == id);
-
-            return hill ?? new Hill();
-        }
-
-        /// <summary>
         /// Get hill where name exactly matches given parameter
         /// </summary>
         /// <param name="name"></param>
@@ -54,7 +42,20 @@ namespace MunroApiData.Repositories
 
             var hill = _hills.FirstOrDefault(x => x.Name.ToUpper() == name.ToUpper());
 
-            return hill ?? new Hill();
+            if (hill != null)
+            {
+                //could use something like automapper here
+                return new Hill
+                {
+                    Name = hill.Name,
+                    Height = hill.HeightM,
+                    Category = hill.Post1997,
+                    GridReference = hill.GridRef,
+                };
+            }
+
+            //send a default/blank object back instead
+            return new Hill();
         }
 
         /// <summary>
@@ -64,6 +65,12 @@ namespace MunroApiData.Repositories
         /// <returns></returns>
         public IEnumerable<Hill> GetHills(HillSearch search)
         {
+            if (string.IsNullOrWhiteSpace(search.SortDirection) || search.SortDirection.ToUpper() != "DESC")
+            {
+                //default sort ascending
+                search.SortDirection = "ASC";
+            }
+
             var hills = _hills;
 
             if (!string.IsNullOrWhiteSpace(search.Category))
@@ -82,23 +89,23 @@ namespace MunroApiData.Repositories
             }
 
             //sorting by name or height(m)
-            if (search.SortBy != SortBy.None)
+            if (!string.IsNullOrWhiteSpace(search.SortBy))
             {
                 hills = hills.ToList();
 
-                switch(search.SortBy)
+                switch(search.SortBy.ToUpper())
                 {
-                    case SortBy.Name:
+                    case "NAME":
                         hills = hills.ToList().OrderBy(x => x.Name);
                         break;
-                    case SortBy.Height:
-                        hills.ToList().Sort((x, y) => decimal.Compare(x.HeightM, y.HeightM));
+                    case "HEIGHT":
+                        hills = hills.ToList().OrderBy(x => x.HeightM);
                         break;
                 }   
             }
 
             //sort direction
-            if (search.SortDirection == SortDirection.Desc)
+            if (search.SortDirection.ToUpper() == "DESC")
             {
                 hills = hills.Reverse();
             }
@@ -109,7 +116,21 @@ namespace MunroApiData.Repositories
                 hills = hills.Take(search.Take);
             }
 
-            return hills;
+            var results = new List<Hill>();
+
+            foreach(var hill in hills)
+            {
+                //could use something like automapper here
+                results.Add(new Hill
+                {
+                    Name = hill.Name,
+                    Height = hill.HeightM,
+                    Category = hill.Post1997,
+                    GridReference = hill.GridRef,
+                });
+            }
+
+            return results;
         }
 
         /// <summary>
@@ -119,7 +140,7 @@ namespace MunroApiData.Repositories
         /// <param name="filePath"></param>
         private void LoadFromFile(string filePath)
         {
-            var hills = new List<Hill>();
+            var hills = new List<CsvHill>();
 
             //set up parser options - is there a header row, and the separator character
             var csvParserOptions = new CsvParserOptions(true, ',');
@@ -128,7 +149,7 @@ namespace MunroApiData.Repositories
             var csvMapper = new CsvHillMapping();
 
             //create a csv parser
-            var csvParser = new CsvParser<Hill>(csvParserOptions, csvMapper);
+            var csvParser = new CsvParser<CsvHill>(csvParserOptions, csvMapper);
 
             //load data from csv
             var results = csvParser.ReadFromFile(filePath, Encoding.ASCII).ToList();

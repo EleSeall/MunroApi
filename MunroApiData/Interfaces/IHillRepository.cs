@@ -8,8 +8,6 @@ namespace MunroApiData
 {
     public interface IHillRepository
     {
-
-        public Hill Get(int id);
         public Hill Get(string name);
 
         public IEnumerable<Hill> GetHills(HillSearch search);
