@@ -11,7 +11,6 @@ namespace MunroApiData.Repositories
     {
         private IEnumerable<Hill> _hills;
 
-
         public CsvHillRepository(string filePath)
         {
             LoadFromFile(filePath);
@@ -29,6 +28,11 @@ namespace MunroApiData.Repositories
             // if we had anything - csvparser doesn't appear to have any dispose or close options
         }
 
+        /// <summary>
+        /// Retrieve hill by running number
+        /// </summary>
+        /// <param name="id">running number</param>
+        /// <returns></returns>
         public Hill Get(int id)
         {
             var hill = _hills.FirstOrDefault(x => x.RunningNo == id);
@@ -36,20 +40,83 @@ namespace MunroApiData.Repositories
             return hill ?? new Hill();
         }
 
+        /// <summary>
+        /// Get hill where name exactly matches given parameter
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public Hill Get(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                return new Hill();
+            }
+
+            var hill = _hills.FirstOrDefault(x => x.Name.ToUpper() == name.ToUpper());
+
+            return hill ?? new Hill();
+        }
+
+        /// <summary>
+        /// Get hills matching search criteria
+        /// </summary>
+        /// <param name="search"></param>
+        /// <returns></returns>
         public IEnumerable<Hill> GetHills(HillSearch search)
         {
             var hills = _hills;
 
             if (!string.IsNullOrWhiteSpace(search.Category))
             {
-                hills = _hills.Where(x => x.Post1997.ToUpper() == search.Category.ToUpper()).ToList();
+                hills = hills.Where(x => x.Post1997.ToUpper() == search.Category.ToUpper()).ToList();
             }
 
-            //sorting
+            if (search.MinHeight > 0)
+            {
+                hills = hills.Where(x => x.HeightM >= search.MinHeight).ToList();
+            }
+
+            if (search.MaxHeight > 0)
+            {
+                hills = hills.Where(x => x.HeightM <= search.MaxHeight).ToList();
+            }
+
+            //sorting by name or height(m)
+            if (search.SortBy != SortBy.None)
+            {
+                hills = hills.ToList();
+
+                switch(search.SortBy)
+                {
+                    case SortBy.Name:
+                        hills = hills.ToList().OrderBy(x => x.Name);
+                        break;
+                    case SortBy.Height:
+                        hills.ToList().Sort((x, y) => decimal.Compare(x.HeightM, y.HeightM));
+                        break;
+                }   
+            }
+
+            //sort direction
+            if (search.SortDirection == SortDirection.Desc)
+            {
+                hills = hills.Reverse();
+            }
+
+            //take specifies a limit to the results
+            if (search.Take > 0)
+            {
+                hills = hills.Take(search.Take);
+            }
 
             return hills;
         }
 
+        /// <summary>
+        /// Parse data from the given csv filepath into a list of hills, 
+        /// which can then be retrieved using the public methods
+        /// </summary>
+        /// <param name="filePath"></param>
         private void LoadFromFile(string filePath)
         {
             var hills = new List<Hill>();

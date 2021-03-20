@@ -8,18 +8,17 @@ namespace MunroApiData
 {
     public class HillSearch
     {
-        public string Category { get; set; }
+        public string Category { get; set; } = "";
 
-        public int MinHeight { get; set; }
+        public int MinHeight { get; set; } = 0;
 
-        public int MaxHeight { get; set; }
+        public int MaxHeight { get; set; } = 0;
 
-        public int Take { get; set; }
+        public int Take { get; set; } = 0;
 
-        public SortBy SortBy { get; set; }
+        public SortBy SortBy { get; set; } = SortBy.None;
 
-        public SortDirection SortDirection { get; set; }
-
+        public SortDirection SortDirection { get; set; } = SortDirection.Asc;
     }
 
     public enum SortDirection
@@ -29,6 +28,6 @@ namespace MunroApiData
 
     public enum SortBy
     {
-        Name, Height
+        None, Name, Height
     }
 }
